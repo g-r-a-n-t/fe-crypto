@@ -1,41 +1,13 @@
-# Groth16 Verifier in fe-lang
+# Groth16 verifier (BN254) in Fe
 
-Groth16 Verifier in fe-lang allows you to verify circom circuits using [snarkjs][https://github.com/iden3/snarkjs]
+This ingot contains a Groth16 verifier for BN254.
 
-Using the groth16.fe, you will be able to leverage zero-knowledge proofs with fe-lang
+## Layout
+- Verifier module (demo VK): `verifiers/src/groth16_bn254.fe`
+- Public exports + tests: `verifiers/src/lib.fe`
 
-## How to use the verifier in your fe-lang project?
-
-As we mention above, you will be able to verify circom circuits in your fe-lang project. [This page] [https://docs.circom.io/getting-started/proving-circuits/] provides an information on how to prove circuits with zero-knowledge.
-
-To be able to use groth16 verifier in your project, you need to write your zero-knowledge circuits in circom (other zero-knowledge frameworks will be provided later)
-
-1. Clone snarkjs repo
-`git clone https://github.com/iden3/snarkjs.git` or clone the fork: https://github.com/onurinanc/snarkjs
-
-2. Go to the local repository
-
-3. Find snarkjs/templates/verifier_groth16.sol.ejs
-
-4. Delete all the lines inside verifier_groth16.sol.ejs
-
-5. Copy all the lines inside groth16.fe and paste it into verifier_groth16.sol.ejs
-
-6. Using the [circom documentation] [https://docs.circom.io/getting-started/proving-circuits/#verifying-a-proof], you should use all the instructions until this part, [Verifying from a Smart Contract] [https://docs.circom.io/getting-started/proving-circuits/#verifying-a-proof]
-
-**Note:** instead of `snarkjs` command use `~/snarkjs/cli.js` as the command
-
-7. In the last step change `verifier.sol` with `verifier.fe` using the following command:
-
-`~/snarkjs/cli.js zkey export solidityverifier multiplier2_0001.zkey verifier.fe`
-
-8. Copy all the content inside the Verifier.fe file into verifers/src/main.fe
-
-9. You are able to crate groth16 verifier in fe-lang!
-
-10. To generate the verifier inputs, use `~/snarkjs/cli.js generatecall`
-
-11. Insert the verifier inputs to `verifyProof()` function in `verifier.fe` file
+## Adapting to your circuit
+`verifiers/src/groth16_bn254.fe` is circuit-specific: replace the `verifying_key_*` constants (including `verifying_key_ic`) with the values generated for your circuit.
 
 ## Disclaimer:
 

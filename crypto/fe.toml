@@ -1,6 +1,4 @@
+# Ingot config
+[ingot]
 name = "crypto"
-version = "1.0"
-
-[dependencies]
-# my_lib = "../my_lib"
-# my_lib = { path = "../my_lib", version = "1.0" }
+version = "0.1.0"

@@ -1,0 +1,5 @@
+[workspace]
+name = "fe-crypto"
+version = "0.1.0"
+members = ["crypto", "verifiers"]
+

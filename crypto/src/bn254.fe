@@ -1,0 +1,157 @@
+use std::evm::{alloc, ops}
+
+const ECADD: u256 = 0x06
+const ECMUL: u256 = 0x07
+const ECPAIRING: u256 = 0x08
+
+// BN254 base field modulus (Fp). Used for point negation.
+const FP_MODULUS: u256 = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+
+pub struct G1Point { pub x: u256, pub y: u256 }
+
+/// Fp2 element is represented as `c0 + c1 * i`.
+///
+/// IMPORTANT: The EVM pairing precompile expects Fp2 coefficients in reversed order, so
+/// `x_c1` / `y_c1` are encoded before `x_c0` / `y_c0`.
+pub struct G2Point { pub x_c0: u256, pub x_c1: u256, pub y_c0: u256, pub y_c1: u256 }
+
+pub fn p1() -> G1Point {
+    G1Point { x: 1, y: 2 }
+}
+
+pub fn p2() -> G2Point {
+    G2Point {
+        x_c0: 11559732032986387107991004021392285783925812861821192530917403151452391805634,
+        x_c1: 10857046999023057135944570762232829481370756359578518086990519993285655852781,
+        y_c0: 4082367875863433681332203403145435568316851327593401208105741076214120093531,
+        y_c1: 8495653923123431417604973247489272438418190587263600148770280649306958101930,
+    }
+}
+
+pub fn negate(p: G1Point) -> G1Point {
+    if p.x == 0 && p.y == 0 {
+        return G1Point { x: 0, y: 0 }
+    }
+
+    let y = p.y % FP_MODULUS
+    let neg_y = if y == 0 { 0 } else { FP_MODULUS - y }
+    G1Point { x: p.x, y: neg_y }
+}
+
+pub fn ec_add(p1: G1Point, p2: G1Point) -> G1Point {
+    let in_ptr = alloc(128)
+    ops::mstore(in_ptr, p1.x)
+    ops::mstore(in_ptr + 32, p1.y)
+    ops::mstore(in_ptr + 64, p2.x)
+    ops::mstore(in_ptr + 96, p2.y)
+
+    let out_ptr = alloc(64)
+    let ok = ops::staticcall(
+        gas: ops::gas(),
+        addr: ECADD,
+        args_offset: in_ptr,
+        args_len: 128,
+        ret_offset: out_ptr,
+        ret_len: 64,
+    )
+    if ok == 0 {
+        ops::revert(0, 0)
+    }
+
+    G1Point {
+        x: ops::mload(out_ptr),
+        y: ops::mload(out_ptr + 32),
+    }
+}
+
+pub fn ec_mul(p: G1Point, s: u256) -> G1Point {
+    let in_ptr = alloc(96)
+    ops::mstore(in_ptr, p.x)
+    ops::mstore(in_ptr + 32, p.y)
+    ops::mstore(in_ptr + 64, s)
+
+    let out_ptr = alloc(64)
+    let ok = ops::staticcall(
+        gas: ops::gas(),
+        addr: ECMUL,
+        args_offset: in_ptr,
+        args_len: 96,
+        ret_offset: out_ptr,
+        ret_len: 64,
+    )
+    if ok == 0 {
+        ops::revert(0, 0)
+    }
+
+    G1Point {
+        x: ops::mload(out_ptr),
+        y: ops::mload(out_ptr + 32),
+    }
+}
+
+fn store_pair(base: u256, p1: G1Point, p2: G2Point) {
+    ops::mstore(base, p1.x)
+    ops::mstore(base + 32, p1.y)
+    // Reverse Fp2 coefficients for the precompile encoding.
+    ops::mstore(base + 64, p2.x_c1)
+    ops::mstore(base + 96, p2.x_c0)
+    ops::mstore(base + 128, p2.y_c1)
+    ops::mstore(base + 160, p2.y_c0)
+}
+
+fn pairing_call(in_ptr: u256, in_len: u256) -> bool {
+    let out_ptr = alloc(32)
+    let ok = ops::staticcall(
+        gas: ops::gas(),
+        addr: ECPAIRING,
+        args_offset: in_ptr,
+        args_len: in_len,
+        ret_offset: out_ptr,
+        ret_len: 32,
+    )
+    if ok == 0 {
+        ops::revert(0, 0)
+    }
+
+    ops::mload(out_ptr) != 0
+}
+
+pub fn pairing_prod2(a1: G1Point, a2: G2Point, b1: G1Point, b2: G2Point) -> bool {
+    let in_ptr = alloc(384)
+    store_pair(in_ptr, a1, a2)
+    store_pair(in_ptr + 192, b1, b2)
+    pairing_call(in_ptr, 384)
+}
+
+pub fn pairing_prod3(
+    a1: G1Point,
+    a2: G2Point,
+    b1: G1Point,
+    b2: G2Point,
+    c1: G1Point,
+    c2: G2Point,
+) -> bool {
+    let in_ptr = alloc(576)
+    store_pair(in_ptr, a1, a2)
+    store_pair(in_ptr + 192, b1, b2)
+    store_pair(in_ptr + 384, c1, c2)
+    pairing_call(in_ptr, 576)
+}
+
+pub fn pairing_prod4(
+    a1: G1Point,
+    a2: G2Point,
+    b1: G1Point,
+    b2: G2Point,
+    c1: G1Point,
+    c2: G2Point,
+    d1: G1Point,
+    d2: G2Point,
+) -> bool {
+    let in_ptr = alloc(768)
+    store_pair(in_ptr, a1, a2)
+    store_pair(in_ptr + 192, b1, b2)
+    store_pair(in_ptr + 384, c1, c2)
+    store_pair(in_ptr + 576, d1, d2)
+    pairing_call(in_ptr, 768)
+}

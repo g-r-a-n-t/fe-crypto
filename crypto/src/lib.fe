@@ -1,0 +1,21 @@
+pub use bn254::{self, *}
+
+use std::evm::assert
+
+#[test]
+fn test_bn254_negate_infinity() {
+    let p = G1Point { x: 0, y: 0 }
+    let q = bn254::negate(p)
+    assert(q.x == 0 && q.y == 0)
+}
+
+#[test]
+fn test_bn254_negate_is_involutive() {
+    let p = bn254::p1()
+    let px = p.x
+    let py = p.y
+
+    let q = bn254::negate(p)
+    let r = bn254::negate(q)
+    assert(r.x == px && r.y == py)
+}
