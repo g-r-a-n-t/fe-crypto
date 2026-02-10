@@ -12,4 +12,5 @@ This repo is a **Fe v2 workspace** with two ingots:
 Quick checks:
 - `fe check .`
 - `fe test ./crypto`
-- `fe test ./verifiers`
+- `fe build --contract Groth16Bn254Verifier ./verifiers`
+- `forge test`

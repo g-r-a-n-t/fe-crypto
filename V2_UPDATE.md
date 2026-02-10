@@ -107,7 +107,7 @@ The Groth16 verifier implementation was moved into a dedicated module:
 
 - `verifiers/src/groth16_bn254.fe`
 
-`verifiers/src/lib.fe` re-exports it (so consumers can import `verifiers::groth16_bn254::*`) and contains a simple test.
+`verifiers/src/lib.fe` re-exports it (so consumers can import `verifiers::groth16_bn254::*`) and includes a simple contract wrapper (`Groth16Bn254Verifier`).
 
 ### How the verifier works now
 
@@ -145,7 +145,8 @@ From the workspace root:
 
 - `fe check .`
 - `fe test ./crypto`
-- `fe test ./verifiers`
+- `fe build --contract Groth16Bn254Verifier ./verifiers`
+- `forge test`
 
 ## Migration notes (v1 → v2)
 
@@ -168,4 +169,3 @@ If you want to bring more back in Fe v2 style, the adjacent `fe-verifiers` works
 
 - KZG point evaluation precompile wrapper (EIP-4844)
 - BLS12-381 precompile wrappers (EIP-2537)
-

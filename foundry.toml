@@ -1,0 +1,8 @@
+[profile.default]
+solc = "/usr/bin/solc"
+ffi = true
+
+fs_permissions = [
+  { access = "read", path = "./" },
+  { access = "read-write", path = "./out" },
+]
