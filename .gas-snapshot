@@ -1,0 +1,4 @@
+Groth16Bn254VerifierTest:testGas_bench_fe_verifyProof_ok() (gas: 202676)
+Groth16Bn254VerifierTest:testGas_bench_fe_verifyProof_wrongPublicInput() (gas: 202754)
+Groth16Bn254VerifierTest:testGas_bench_solidity_verifyProof_ok() (gas: 214887)
+Groth16Bn254VerifierTest:testGas_bench_solidity_verifyProof_wrongPublicInput() (gas: 214921)
